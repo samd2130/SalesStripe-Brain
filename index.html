@@ -617,13 +617,40 @@ function renderLemlistReport(container,campaigns){
     html+="<div style='font-size:13px;font-weight:600;margin-bottom:8px;color:#1a1a1a;'>"+esc(campaignTitle)+"</div>";
     html+="<div style='font-size:11px;color:#555;margin-bottom:8px;'>ID: "+esc(c.id||c._id||c.campaignId||"")+"</div>";
     if(Array.isArray(act)){
-      html+="<div style='display:grid;grid-template-columns:minmax(120px,1fr) minmax(120px,1fr) minmax(120px,1fr);gap:8px;'>";
+      var stageOrder=["linkedinVisitDone","linkedinSent","linkedinInviteAccepted","linkedinOpened","linkedinReplied"];
+      var leadMap={};
+      act.forEach(function(event){
+        var key=event.leadEmail||event.email||event.leadId||event.id||event.name||event.subject||JSON.stringify(event).slice(0,100);
+        if(!key) key=JSON.stringify(event);
+        if(!leadMap[key]) leadMap[key]={};
+        if(event.type) leadMap[key][event.type]=true;
+      });
+      var totalLeads=Object.keys(leadMap).length;
+      var stageCounts={};
+      stageOrder.forEach(function(stage){
+        stageCounts[stage]=Object.keys(leadMap).filter(function(leadKey){return leadMap[leadKey][stage];}).length;
+      });
+      html+="<div style='display:grid;grid-template-columns:minmax(120px,1fr) minmax(120px,1fr) minmax(120px,1fr);gap:8px;margin-bottom:14px;'>";
       act.forEach(function(event){
         html+="<div style='padding:8px;border:1px solid #f0f0f0;border-radius:8px;background:#fafafa;'>";
         html+="<div style='font-size:12px;font-weight:600;color:#333;'>"+esc(event.type||event.status||event.stage||"Activity")+"</div>";
         html+="<div style='font-size:11px;color:#555;margin-top:4px;'>"+esc(event.leadEmail||event.email||event.name||event.subject||event.detail||JSON.stringify(event).slice(0,120))+"</div>";
         html+="</div>";
       });
+      html+="</div>";
+      html+="<div style='margin-top:14px;padding:12px;border:1px solid #e5e5e5;border-radius:10px;background:#fbfbff;'>";
+      html+="<div style='font-size:12px;font-weight:700;color:#1a1a1a;margin-bottom:10px;'>Funnel summary</div>";
+      html+="<div style='display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:10px;font-size:12px;color:#333;'>";
+      html+="<div style='font-weight:600;'>Stage</div><div style='font-weight:600;'>Count</div><div style='font-weight:600;'>% of total</div>";
+      html+="<div style='grid-column:1/span3;padding:4px 0;color:#555;'>Total leads: "+totalLeads+"</div>";
+      stageOrder.forEach(function(stage){
+        var count=stageCounts[stage]||0;
+        var pct=totalLeads?Math.round(count/totalLeads*100):0;
+        html+="<div style='padding:4px 0;'>"+esc(stage)+"</div>";
+        html+="<div style='padding:4px 0;color:#1a1a1a;">"+count+"</div>";
+        html+="<div style='padding:4px 0;color:#555;'>"+pct+"%</div>";
+      });
+      html+="</div>";
       html+="</div>";
     } else if(act && typeof act==='object'){
       html+="<pre style='font-size:11px;color:#444;white-space:pre-wrap;'>"+esc(JSON.stringify(act,null,2))+"</pre>";
