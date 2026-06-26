@@ -583,7 +583,7 @@ function loadLemlistReport(){
   });
 }
 function fetchLemlistCampaigns(key){
-  var baseUrl="https://api.lemlist.com/api/campaigns";
+  var baseUrl="/api/lemlist?path=/api/campaigns";
   return tryLemlistFetch(baseUrl,key).then(function(data){
     if(Array.isArray(data)) return data;
     if(data && Array.isArray(data.campaigns)) return data.campaigns;
@@ -596,7 +596,7 @@ function fetchLemlistCampaignLeads(key,camp){
   if(!campaignId){
     return Promise.resolve({campaign:camp,activity:[]});
   }
-  var url="https://api.lemlist.com/api/leadActivities?campaignId="+encodeURIComponent(campaignId)+"&limit=200";
+  var url="/api/lemlist?path=/api/leadActivities?campaignId="+encodeURIComponent(campaignId)+"&limit=200";
   return tryLemlistFetch(url,key).then(function(data){
     if(Array.isArray(data)) return {campaign:camp,activity:data};
     if(data && Array.isArray(data.leadActivities)) return {campaign:camp,activity:data.leadActivities};
