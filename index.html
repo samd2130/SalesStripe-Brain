@@ -240,11 +240,10 @@ tr:hover td{background:#fafafa;}
         </div>
         <div class="tbl-outer" style="padding:16px;">
           <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start;">
-            <input id="lemlist-api-key" value="d704fee750fc91bf88a581be96392151" placeholder="Lemlist API key" style="flex:1;min-width:220px;padding:10px 12px;border:1px solid #e5e5e5;border-radius:8px;outline:none;"/>
             <button class="btn btn-primary" onclick="loadLemlistReport()">Load report</button>
             <button class="btn btn-export" onclick="clearLemlistReport()">Clear</button>
           </div>
-          <div id="report-status" class="hint" style="margin-top:12px;">Paste your Lemlist API key and click Load report.</div>
+          <div id="report-status" class="hint" style="margin-top:12px;">Click Load report. Authentication is handled securely on the server.</div>
           <div id="report-results" style="margin-top:16px;max-height:520px;overflow:auto;"></div>
         </div>
       </div>
@@ -550,9 +549,9 @@ function goHome(){
   document.getElementById("home-screen").style.display="block";document.getElementById("app-screen").style.display="none";closePerfPanel();renderHome();
 }
 function getLemlistHeaders(key){
-  if(!key||!key.trim())return null;
-  var value=key.trim();
-  return {Authorization:"Basic "+btoa(value+":"),Accept:"application/json"};
+  var headers={Accept:"application/json"};
+  if(key&&key.trim())headers.Authorization="Basic "+btoa(key.trim()+":");
+  return headers;
 }
 function tryLemlistFetch(url,key){
   var headers=getLemlistHeaders(key);
@@ -568,7 +567,7 @@ function tryLemlistFetch(url,key){
   });
 }
 function loadLemlistReport(){
-  var key=document.getElementById("lemlist-api-key").value.trim();
+  var key="";// auth is added server-side by api/lemlist.js via LEMLIST_API_KEY
   var status=document.getElementById("report-status");
   var output=document.getElementById("report-results");
   output.innerHTML="";status.textContent="Loading campaigns from Lemlist...";

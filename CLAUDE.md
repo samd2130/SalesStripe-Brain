@@ -8,7 +8,7 @@ A single-file B2B outbound agency management tool. One HTML file (index.html) de
 - api/lemlist.js — Vercel serverless function proxying Lemlist API (fixes CORS)
 - vercel.json — routes /api/* to serverless functions, everything else to index.html
 - Storage: localStorage, key ss-v6
-- Lemlist API key: d704fee750fc91bf88a581be96392151
+- Lemlist API key: stored only in the Vercel env var `LEMLIST_API_KEY` (used by api/lemlist.js). Never hardcode it in the client or this file. If it ever leaks, rotate it in Lemlist.
 
 ## Rules — never break these
 - Never rewrite the whole file. Make surgical edits only.
