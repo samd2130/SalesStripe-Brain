@@ -189,6 +189,7 @@ tr:hover td{background:#fafafa;}
     <div class="tab active" id="tab1" onclick="showTab(1)" ondblclick="startRenameTab(1)"><span class="tab-name-span" id="tab1-name"></span></div>
     <div class="tab" id="tab2" onclick="showTab(2)" ondblclick="startRenameTab(2)"><span class="tab-name-span" id="tab2-name"></span></div>
     <div class="tab" id="tab05" onclick="showTab(3)" ondblclick="startRenameTab(3)"><span class="tab-name-span" id="tab3-name"></span></div>
+    <div class="tab" id="tab4" onclick="showTab(4)" ondblclick="startRenameTab(4)"><span class="tab-name-span" id="tab4-name"></span></div>
   </div>
   <div class="app-body" id="app-body">
     <div id="view1" style="display:none;">
@@ -229,6 +230,22 @@ tr:hover td{background:#fafafa;}
           <div class="leg"><div style="width:14px;height:14px;border-radius:3px;background:white;border:2.5px solid #639922;"></div>Active campaign</div>
           <div class="leg"><div style="width:14px;height:14px;border-radius:3px;background:white;border:2.5px solid #ba7517;"></div>Draft campaign</div>
           <div class="leg"><div style="width:14px;height:14px;border-radius:3px;background:#f0f0f0;border:1.5px solid #ccc;opacity:0.4;"></div>Not in campaign</div>
+        </div>
+      </div>
+    </div>
+    <div id="view4" style="display:none;">
+      <div class="table-wrap">
+        <div class="table-header">
+          <span class="table-title" id="report-title">Reporting</span>
+        </div>
+        <div class="tbl-outer" style="padding:16px;">
+          <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start;">
+            <input id="lemlist-api-key" value="7ad12194c382724589399786e0ff4f4a" placeholder="Lemlist API key" style="flex:1;min-width:220px;padding:10px 12px;border:1px solid #e5e5e5;border-radius:8px;outline:none;"/>
+            <button class="btn btn-primary" onclick="loadLemlistReport()">Load report</button>
+            <button class="btn btn-export" onclick="clearLemlistReport()">Clear</button>
+          </div>
+          <div id="report-status" class="hint" style="margin-top:12px;">Paste your Lemlist API key and click Load report.</div>
+          <div id="report-results" style="margin-top:16px;max-height:520px;overflow:auto;"></div>
         </div>
       </div>
     </div>
@@ -375,7 +392,7 @@ var DEFAULT_T2_COLS=[
   {id:"c_mtg",name:"Meeting %",type:"text",colour:9,t3role:"filter"},
   {id:"c_notes2",name:"Notes",type:"text",colour:9,t3role:"none"}
 ];
-var DEFAULT_TAB_NAMES=["Discovery & menu","Campaigns","Strategy map"];
+var DEFAULT_TAB_NAMES=["Discovery & menu","Campaigns","Strategy map","Reporting"];
 var COLOURS=[1,2,3,4,5,6,7,8,9,10,11,12];
 var CBG={1:"#EEEDFE",2:"#E1F5EE",3:"#E6F1FB",4:"#FAEEDA",5:"#FAECE7",6:"#FBEAF0",7:"#EAF3DE",8:"#FCEBEB",9:"#F1EFE8",10:"#E8F4FD",11:"#FDF3E8",12:"#F0E8FD"};
 var CTX={1:"#3C3489",2:"#085041",3:"#0C447C",4:"#633806",5:"#712B13",6:"#72243E",7:"#27500A",8:"#791F1F",9:"#444441",10:"#0a3d5c",11:"#5c3a0a",12:"#3a0a5c"};
@@ -524,7 +541,7 @@ function openWorkspace(id){
   document.getElementById("home-screen").style.display="none";document.getElementById("app-screen").style.display="flex";
   var names=ws.tabNames||DEFAULT_TAB_NAMES.slice();
   document.getElementById("ws-name-disp").textContent=ws.name;
-  document.getElementById("tab1-name").textContent=names[0];document.getElementById("tab2-name").textContent=names[1];document.getElementById("tab3-name").textContent=names[2];
+  document.getElementById("tab1-name").textContent=names[0];document.getElementById("tab2-name").textContent=names[1];document.getElementById("tab3-name").textContent=names[2];document.getElementById("tab4-name").textContent=names[3];
   document.getElementById("t1-title").textContent=names[0];document.getElementById("t2-title").textContent=names[1];
   renderTable(1);renderTable(2);showTab(1);
 }
@@ -532,9 +549,93 @@ function goHome(){
   var ws=getCurrentWs();if(ws){ws.nodePositions=JSON.parse(JSON.stringify(nodePositions));ws.updatedAt=Date.now();saveHome();}
   document.getElementById("home-screen").style.display="block";document.getElementById("app-screen").style.display="none";closePerfPanel();renderHome();
 }
-function startRenameWs(){
-  var d=document.getElementById("ws-name-disp"),i=document.getElementById("ws-name-inp");
-  i.value=d.textContent;d.style.display="none";i.style.display="inline-block";i.focus();i.select();
+function getLemlistHeaders(key){
+  if(!key||!key.trim())return null;
+  var value=key.trim();
+  return {Authorization:"Basic "+btoa(value+":"),Accept:"application/json"};
+}
+function tryLemlistFetch(url,key){
+  var headers=getLemlistHeaders(key);
+  if(!headers) return Promise.reject(new Error("Missing Lemlist API key."));
+  return fetch(url,{headers:headers}).then(function(res){
+    return res.text().then(function(text){
+      if(!res.ok){
+        throw new Error("Lemlist request failed: " + res.status + " " + res.statusText + " - " + text.slice(0,200));
+      }
+      try{ return JSON.parse(text); } catch(e){ throw new Error("Expected JSON from " + url + ": " + text.slice(0,200)); }
+    });
+  });
+}
+function loadLemlistReport(){
+  var key=document.getElementById("lemlist-api-key").value.trim();
+  var status=document.getElementById("report-status");
+  var output=document.getElementById("report-results");
+  output.innerHTML="";status.textContent="Loading campaigns from Lemlist...";
+  fetchLemlistCampaigns(key).then(function(camps){
+    status.textContent="Loaded "+camps.length+" campaign(s). Fetching lead activity...";
+    return Promise.all(camps.map(function(camp){return fetchLemlistCampaignLeads(key,camp);}).concat());
+  }).then(function(campaigns){
+    status.textContent="Report loaded. " + campaigns.length + " campaign(s) with lead activity.";
+    renderLemlistReport(output,campaigns);
+  }).catch(function(err){
+    status.textContent="Error: "+(err.message||err);
+    output.innerHTML="";
+  });
+}
+function fetchLemlistCampaigns(key){
+  var baseUrl="https://api.lemlist.com/api/campaigns";
+  return tryLemlistFetch(baseUrl,key).then(function(data){
+    if(Array.isArray(data)) return data;
+    if(data && Array.isArray(data.campaigns)) return data.campaigns;
+    if(data && data.items) return data.items;
+    throw new Error("Unexpected campaigns response format.");
+  });
+}
+function fetchLemlistCampaignLeads(key,camp){
+  var campaignId=camp.id||camp._id||camp.campaignId||camp.uuid||camp.name;
+  if(!campaignId){
+    return Promise.resolve({campaign:camp,activity:[]});
+  }
+  var url="https://api.lemlist.com/api/leadActivities?campaignId="+encodeURIComponent(campaignId)+"&limit=200";
+  return tryLemlistFetch(url,key).then(function(data){
+    if(Array.isArray(data)) return {campaign:camp,activity:data};
+    if(data && Array.isArray(data.leadActivities)) return {campaign:camp,activity:data.leadActivities};
+    if(data && Array.isArray(data.activities)) return {campaign:camp,activity:data.activities};
+    if(data && Array.isArray(data.items)) return {campaign:camp,activity:data.items};
+    return {campaign:camp,activity:[]};
+  });
+}
+function renderLemlistReport(container,campaigns){
+  if(!campaigns.length){container.innerHTML="<div style='font-size:12px;color:#888;'>No campaigns or lead activity found.</div>";return;}
+  var html="";
+  campaigns.forEach(function(item){
+    var c=item.campaign||item.camp||item;
+    var act=item.activity||item;
+    var campaignTitle=(c.name||c.title||c.campaignName||c.id||c._id||"Unnamed campaign");
+    html+="<div style='margin-bottom:20px;padding:14px;border:1px solid #e5e5e5;border-radius:10px;background:#fff;'>";
+    html+="<div style='font-size:13px;font-weight:600;margin-bottom:8px;color:#1a1a1a;'>"+esc(campaignTitle)+"</div>";
+    html+="<div style='font-size:11px;color:#555;margin-bottom:8px;'>ID: "+esc(c.id||c._id||c.campaignId||"")+"</div>";
+    if(Array.isArray(act)){
+      html+="<div style='display:grid;grid-template-columns:minmax(120px,1fr) minmax(120px,1fr) minmax(120px,1fr);gap:8px;'>";
+      act.forEach(function(event){
+        html+="<div style='padding:8px;border:1px solid #f0f0f0;border-radius:8px;background:#fafafa;'>";
+        html+="<div style='font-size:12px;font-weight:600;color:#333;'>"+esc(event.type||event.status||event.stage||"Activity")+"</div>";
+        html+="<div style='font-size:11px;color:#555;margin-top:4px;'>"+esc(event.leadEmail||event.email||event.name||event.subject||event.detail||JSON.stringify(event).slice(0,120))+"</div>";
+        html+="</div>";
+      });
+      html+="</div>";
+    } else if(act && typeof act==='object'){
+      html+="<pre style='font-size:11px;color:#444;white-space:pre-wrap;'>"+esc(JSON.stringify(act,null,2))+"</pre>";
+    } else {
+      html+="<div style='font-size:12px;color:#888;'>No lead activity available.</div>";
+    }
+    html+="</div>";
+  });
+  container.innerHTML=html;
+}
+function clearLemlistReport(){
+  document.getElementById("report-status").textContent="Paste your Lemlist API key and click Load report.";
+  document.getElementById("report-results").innerHTML="";
 }
 function finishRenameWs(){
   var d=document.getElementById("ws-name-disp"),i=document.getElementById("ws-name-inp");
@@ -544,7 +645,7 @@ function finishRenameWs(){
 function startRenameTab(n){
   var el=document.getElementById("tab"+n+"-name");el.contentEditable=true;el.focus();
   var r=document.createRange();r.selectNodeContents(el);window.getSelection().removeAllRanges();window.getSelection().addRange(r);
-  el.onblur=function(){el.contentEditable=false;var ws=getCurrentWs();if(ws){if(!ws.tabNames)ws.tabNames=DEFAULT_TAB_NAMES.slice();ws.tabNames[n-1]=el.textContent.trim()||ws.tabNames[n-1];if(n===1)document.getElementById("t1-title").textContent=ws.tabNames[0];if(n===2)document.getElementById("t2-title").textContent=ws.tabNames[1];saveHome();}};
+  el.onblur=function(){el.contentEditable=false;var ws=getCurrentWs();if(ws){if(!ws.tabNames)ws.tabNames=DEFAULT_TAB_NAMES.slice();ws.tabNames[n-1]=el.textContent.trim()||ws.tabNames[n-1];if(n===1)document.getElementById("t1-title").textContent=ws.tabNames[0];if(n===2)document.getElementById("t2-title").textContent=ws.tabNames[1];if(n===4)document.getElementById("report-title").textContent=ws.tabNames[3];saveHome();}};
   el.onkeydown=function(e){if(e.key==="Enter"){e.preventDefault();el.blur();}};
 }
 
@@ -997,11 +1098,12 @@ function initT3Canvas(){
 }
 
 function showTab(n){
-  [1,2,3].forEach(function(i){
+  [1,2,3,4].forEach(function(i){
     var v=document.getElementById("view"+i);if(v)v.style.display="none";
-    var tb=document.getElementById(i===1?"tab1":i===2?"tab2":"tab05");if(tb)tb.classList.toggle("active",i===n);
+    var tb=document.getElementById(i===1?"tab1":i===2?"tab2":i===3?"tab05":"tab4");if(tb)tb.classList.toggle("active",i===n);
   });
   if(n===3){var v3=document.getElementById("view3");v3.style.display="flex";v3.style.flexDirection="column";renderT3();}
+  else if(n===4){document.getElementById("view4").style.display="block";}
   else{document.getElementById("view"+n).style.display="block";}
 }
 function openModal(id){document.getElementById(id).classList.add("open");}
