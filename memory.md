@@ -17,16 +17,26 @@
 
 ## Known landmines & issues
 
-### [2026-06-26] `@vercel/node` in vercel.json breaks deployment
-- **Symptom:** deployments fail / app stops working; repeated `restore working version` and
-  `Revert "..."` commits in git history point at deploy breakage.
-- **Cause:** `vercel.json` uses the `@vercel/node` runtime in both the `builds` block
-  ([vercel.json:4](vercel.json#L4)) and the `functions` block ([vercel.json:9](vercel.json#L9)).
-  CLAUDE.md explicitly says this runtime breaks deployment.
-- **Fix:** OPEN — left as-is for now because `vercel.json` is a protected file (never touch unless
-  asked). Flagged for a follow-up. If deploys break, this is suspect #1.
-- **Prevention:** Never add or keep `@vercel/node` in `vercel.json`. `deploy-check` verifies this before
-  every push. Don't edit `vercel.json` without explicit approval.
+### [2026-06-26] vercel.json: deploys failed, then the API 404'd — fixed with zero-config
+- **Symptom:** (1) `git push` deploys failed entirely — GitHub commit status "Deployment failed", Vercel
+  error link `vercel.link/functions-and-builds`; the live site stayed stuck on a ~10h-old deploy.
+  (2) After a first fix the site built but `/api/lemlist` returned **404**, then returned **index.html
+  with status 200** instead of JSON.
+- **Cause:** the committed `vercel.json` had a `builds` block **and** a `functions` block together
+  (Vercel forbids that combo) and used `"runtime": "@vercel/node"` (invalid — `@vercel/node` is a
+  builder, not a runtime). Separately: with an explicit `builds` block the function is served at
+  `/api/lemlist.js`, but the app calls `/api/lemlist` (no extension), so requests fell through the
+  catch-all route to index.html.
+- **Fix:** [2026-06-26] Replaced vercel.json with Vercel's **zero-config** form — no `builds`, no
+  `functions`, no `routes`, no `@vercel/node`:
+  `{ "rewrites": [ { "source": "/((?!api/).*)", "destination": "/index.html" } ] }`
+  Vercel auto-detects `api/lemlist.js` and serves it at `/api/lemlist` (extension stripped). Verified
+  live: homepage = new version, and `/api/lemlist?path=/api/campaigns` returns campaign JSON. Deployed
+  with `vercel --prod` (the Vercel CLI is logged in as samd2130) after a Preview build returned READY.
+- **Prevention:** keep vercel.json zero-config. Never add a `builds`/`functions` block or `@vercel/node`.
+  If the API 404s or returns HTML instead of JSON, the function isn't being served at the path the client
+  calls — confirm the route is `/api/<file>` with no `.js`. `deploy-check` should curl `/api/lemlist`
+  and assert the body is JSON (a 200 alone isn't enough — the catch-all can return index.html as 200).
 
 ### [2026-06-26] Hardcoded Lemlist API key in the client
 - **Symptom:** the Lemlist API key is committed in plaintext and shipped to every browser.
