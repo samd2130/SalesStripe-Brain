@@ -164,9 +164,39 @@ tr:hover td{background:#fafafa;}
 .fs-order-tag{font-size:10px;color:#888;}
 .fs-name-inp{width:100%;padding:7px 10px;border:1px solid #e5e5e5;border-radius:6px;font-size:13px;outline:none;margin-bottom:12px;}
 .fs-name-inp:focus{border-color:#534AB7;}
+/* ---- theme toggle + dark mode ---- */
+#theme-toggle{position:fixed;bottom:16px;right:16px;z-index:500;width:38px;height:38px;border-radius:50%;border:1px solid #e5e5e5;background:white;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 2px 8px rgba(0,0,0,0.15);user-select:none;}
+#theme-toggle:hover{transform:scale(1.06);}
+body.dark{background:#16161a;}
+body.dark #theme-toggle{background:#26262b;border-color:#3a3a40;}
+body.dark .home-logo,body.dark .ws-card-name,body.dark .ws-name-disp,body.dark .tab.active,body.dark .table-title,body.dark .folder-name-inp,body.dark .modal h3{color:#e8e8ea;}
+body.dark .btn,body.dark .add-row-btn{background:#26262b;color:#cfcfd4;border-color:#3a3a40;}
+body.dark .btn:hover,body.dark .add-row-btn:hover{background:#303036;}
+body.dark .folder-header{background:#26262b;}
+body.dark .ws-card{background:#242428;border-color:#3a3a40;}
+body.dark .ws-card:hover{border-color:#6b63d6;}
+body.dark .ws-add-card{background:#1e1e22;border-color:#3a3a40;}
+body.dark .topbar{background:#1e1e22;border-color:#3a3a40;}
+body.dark .tab{color:#9a9aa0;}
+body.dark .back-btn{border-color:#3a3a40;}
+body.dark .table-wrap,body.dark .modal,body.dark .camp-creator,body.dark .flow-setup,body.dark .col-menu,body.dark .perf-panel{background:#242428;border-color:#3a3a40;}
+body.dark th{background:#26262b;color:#b0b0b4;border-color:#3a3a40;}
+body.dark td{border-color:#303036;color:#dcdce0;}
+body.dark tr:hover td{background:#2a2a2f;}
+body.dark .cell-input{color:#e8e8ea;}
+body.dark .cell-select,body.dark .modal input,body.dark .modal select,body.dark .fs-name-inp,body.dark .camp-name-inp{background:#26262b;color:#e8e8ea;border-color:#3a3a40;}
+body.dark .col-menu-item{color:#e8e8ea;}
+body.dark .col-menu-item:hover{background:#303036;}
+body.dark .flow-canvas-outer{background:#1a1a1e;}
+body.dark .t3-toolbar,body.dark .t3-legend{background:#1e1e22;border-color:#3a3a40;}
+body.dark .perf-stat{background:#26262b;}
+body.dark .perf-stat-val{color:#e8e8ea;}
+body.dark .opt-pill{background:#26262b;color:#cfcfd4;border-color:#3a3a40;}
 </style>
 </head>
 <body>
+
+<div id="theme-toggle" onclick="toggleTheme()" title="Toggle dark / light mode">&#127769;</div>
 
 <div id="home-screen" class="home">
   <div class="home-header">
@@ -1173,7 +1203,16 @@ function duplicateFlow(flowId){
   var copy=JSON.parse(JSON.stringify(flow));copy.id=uid();copy.name=flow.name+" (copy)";copy.nodePositions={};
   ws.flows.push(copy);saveHome();renderT3();
 }
-loadHome();renderHome();initT3Canvas();
+function applyTheme(){
+  var dark=localStorage.getItem("ss-theme")==="dark";
+  document.body.classList.toggle("dark",dark);
+  var t=document.getElementById("theme-toggle");if(t)t.textContent=dark?"☀️":"🌙";
+}
+function toggleTheme(){
+  var dark=localStorage.getItem("ss-theme")==="dark";
+  localStorage.setItem("ss-theme",dark?"light":"dark");applyTheme();
+}
+loadHome();renderHome();initT3Canvas();applyTheme();
 </script>
 </body>
 </html>
