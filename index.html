@@ -596,7 +596,7 @@ function fetchLemlistCampaignLeads(key,camp){
   if(!campaignId){
     return Promise.resolve({campaign:camp,activity:[]});
   }
-  var url="/api/lemlist?path="+encodeURIComponent("/api/campaigns/"+campaignId+"/activities?limit=200");
+  var url="/api/lemlist?path="+encodeURIComponent("/api/activities?campaignId="+campaignId+"&limit=200");
   return tryLemlistFetch(url,key).then(function(data){
     if(Array.isArray(data)) return {campaign:camp,activity:data};
     if(data && Array.isArray(data.leadActivities)) return {campaign:camp,activity:data.leadActivities};
