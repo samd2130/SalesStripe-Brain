@@ -164,6 +164,31 @@ tr:hover td{background:#fafafa;}
 .fs-order-tag{font-size:10px;color:#888;}
 .fs-name-inp{width:100%;padding:7px 10px;border:1px solid #e5e5e5;border-radius:6px;font-size:13px;outline:none;margin-bottom:12px;}
 .fs-name-inp:focus{border-color:#534AB7;}
+
+.camp-detail-panel{position:fixed;right:0;top:0;height:100vh;width:45%;background:white;border-left:1px solid #e5e5e5;z-index:250;display:none;flex-direction:column;box-shadow:-4px 0 20px rgba(0,0,0,0.08);}
+.camp-detail-panel.open{display:flex;}
+.cdp-header{padding:16px 20px;border-bottom:1px solid #e5e5e5;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.cdp-title{font-size:15px;font-weight:600;color:#1a1a1a;flex:1;outline:none;border:none;padding:0;background:transparent;}
+.cdp-title:focus{color:#534AB7;}
+.cdp-close{cursor:pointer;color:#aaa;font-size:20px;padding:4px;}
+.cdp-close:hover{color:#1a1a1a;}
+.cdp-body{flex:1;overflow-y:auto;padding:20px;}
+.cdp-field{margin-bottom:18px;}
+.cdp-field-label{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px;}
+.cdp-field-val{display:flex;flex-wrap:wrap;gap:4px;align-items:center;min-height:32px;padding:6px 10px;border:1px solid #f0f0f0;border-radius:7px;cursor:text;}
+.cdp-field-val:hover{border-color:#e5e5e5;}
+.cdp-field-val:focus-within{border-color:#534AB7;}
+.cdp-inp{border:none;outline:none;font-size:13px;color:#1a1a1a;background:transparent;min-width:80px;flex:1;padding:2px 0;}
+.cdp-pill{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:5px;font-size:12px;margin:1px;}
+.cdp-pill .rp{cursor:pointer;opacity:0.4;font-size:12px;margin-left:2px;}
+.cdp-pill .rp:hover{opacity:1;}
+.cdp-select{width:100%;padding:7px 10px;border:1px solid #f0f0f0;border-radius:7px;font-size:13px;outline:none;background:white;cursor:pointer;}
+.cdp-select:focus{border-color:#534AB7;}
+.cdp-ac{background:white;border:1px solid #e5e5e5;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.1);margin-top:2px;max-height:150px;overflow-y:auto;}
+.cdp-ac-item{padding:6px 12px;font-size:12px;cursor:pointer;color:#1a1a1a;}
+.cdp-ac-item:hover{background:#EEEDFE;color:#534AB7;}
+.cdp-divider{border:none;border-top:1px solid #f0f0f0;margin:20px 0;}
+.cdp-section-title{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:14px;}
 </style>
 </head>
 <body>
@@ -189,7 +214,6 @@ tr:hover td{background:#fafafa;}
     <div class="tab active" id="tab1" onclick="showTab(1)" ondblclick="startRenameTab(1)"><span class="tab-name-span" id="tab1-name"></span></div>
     <div class="tab" id="tab2" onclick="showTab(2)" ondblclick="startRenameTab(2)"><span class="tab-name-span" id="tab2-name"></span></div>
     <div class="tab" id="tab05" onclick="showTab(3)" ondblclick="startRenameTab(3)"><span class="tab-name-span" id="tab3-name"></span></div>
-    <div class="tab" id="tab4" onclick="showTab(4)" ondblclick="startRenameTab(4)"><span class="tab-name-span" id="tab4-name"></span></div>
   </div>
   <div class="app-body" id="app-body">
     <div id="view1" style="display:none;">
@@ -230,22 +254,6 @@ tr:hover td{background:#fafafa;}
           <div class="leg"><div style="width:14px;height:14px;border-radius:3px;background:white;border:2.5px solid #639922;"></div>Active campaign</div>
           <div class="leg"><div style="width:14px;height:14px;border-radius:3px;background:white;border:2.5px solid #ba7517;"></div>Draft campaign</div>
           <div class="leg"><div style="width:14px;height:14px;border-radius:3px;background:#f0f0f0;border:1.5px solid #ccc;opacity:0.4;"></div>Not in campaign</div>
-        </div>
-      </div>
-    </div>
-    <div id="view4" style="display:none;">
-      <div class="table-wrap">
-        <div class="table-header">
-          <span class="table-title" id="report-title">Reporting</span>
-        </div>
-        <div class="tbl-outer" style="padding:16px;">
-          <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start;">
-            <input id="lemlist-api-key" value="d704fee750fc91bf88a581be96392151" placeholder="Lemlist API key" style="flex:1;min-width:220px;padding:10px 12px;border:1px solid #e5e5e5;border-radius:8px;outline:none;"/>
-            <button class="btn btn-primary" onclick="loadLemlistReport()">Load report</button>
-            <button class="btn btn-export" onclick="clearLemlistReport()">Clear</button>
-          </div>
-          <div id="report-status" class="hint" style="margin-top:12px;">Paste your Lemlist API key and click Load report.</div>
-          <div id="report-results" style="margin-top:16px;max-height:520px;overflow:auto;"></div>
         </div>
       </div>
     </div>
@@ -392,7 +400,7 @@ var DEFAULT_T2_COLS=[
   {id:"c_mtg",name:"Meeting %",type:"text",colour:9,t3role:"filter"},
   {id:"c_notes2",name:"Notes",type:"text",colour:9,t3role:"none"}
 ];
-var DEFAULT_TAB_NAMES=["Discovery & menu","Campaigns","Strategy map","Reporting"];
+var DEFAULT_TAB_NAMES=["Discovery & menu","Campaigns","Strategy map"];
 var COLOURS=[1,2,3,4,5,6,7,8,9,10,11,12];
 var CBG={1:"#EEEDFE",2:"#E1F5EE",3:"#E6F1FB",4:"#FAEEDA",5:"#FAECE7",6:"#FBEAF0",7:"#EAF3DE",8:"#FCEBEB",9:"#F1EFE8",10:"#E8F4FD",11:"#FDF3E8",12:"#F0E8FD"};
 var CTX={1:"#3C3489",2:"#085041",3:"#0C447C",4:"#633806",5:"#712B13",6:"#72243E",7:"#27500A",8:"#791F1F",9:"#444441",10:"#0a3d5c",11:"#5c3a0a",12:"#3a0a5c"};
@@ -541,129 +549,17 @@ function openWorkspace(id){
   document.getElementById("home-screen").style.display="none";document.getElementById("app-screen").style.display="flex";
   var names=ws.tabNames||DEFAULT_TAB_NAMES.slice();
   document.getElementById("ws-name-disp").textContent=ws.name;
-  document.getElementById("tab1-name").textContent=names[0];document.getElementById("tab2-name").textContent=names[1];document.getElementById("tab3-name").textContent=names[2];document.getElementById("tab4-name").textContent=names[3];
+  document.getElementById("tab1-name").textContent=names[0];document.getElementById("tab2-name").textContent=names[1];document.getElementById("tab3-name").textContent=names[2];
   document.getElementById("t1-title").textContent=names[0];document.getElementById("t2-title").textContent=names[1];
-  renderTable(1);renderTable(2);showTab(1);
+  syncT1ColsToT2();renderTable(1);renderTable(2);showTab(1);
 }
 function goHome(){
   var ws=getCurrentWs();if(ws){ws.nodePositions=JSON.parse(JSON.stringify(nodePositions));ws.updatedAt=Date.now();saveHome();}
   document.getElementById("home-screen").style.display="block";document.getElementById("app-screen").style.display="none";closePerfPanel();renderHome();
 }
-function getLemlistHeaders(key){
-  if(!key||!key.trim())return null;
-  var value=key.trim();
-  return {Authorization:"Basic "+btoa(value+":"),Accept:"application/json"};
-}
-function tryLemlistFetch(url,key){
-  var headers=getLemlistHeaders(key);
-  if(!headers) return Promise.reject(new Error("Missing Lemlist API key."));
-  return fetch(url,{headers:headers}).then(function(res){
-    return res.text().then(function(text){
-      console.log("Lemlist proxy response for", url, "status", res.status, res.statusText, "body", text);
-      if(!res.ok){
-        throw new Error("Lemlist request failed: " + res.status + " " + res.statusText + " - " + text.slice(0,200));
-      }
-      try{ return JSON.parse(text); } catch(e){ throw new Error("Expected JSON from " + url + ": " + text.slice(0,200)); }
-    });
-  });
-}
-function loadLemlistReport(){
-  var key=document.getElementById("lemlist-api-key").value.trim();
-  var status=document.getElementById("report-status");
-  var output=document.getElementById("report-results");
-  output.innerHTML="";status.textContent="Loading campaigns from Lemlist...";
-  fetchLemlistCampaigns(key).then(function(camps){
-    status.textContent="Loaded "+camps.length+" campaign(s). Fetching lead activity...";
-    return Promise.all(camps.map(function(camp){return fetchLemlistCampaignLeads(key,camp);}).concat());
-  }).then(function(campaigns){
-    status.textContent="Report loaded. " + campaigns.length + " campaign(s) with lead activity.";
-    renderLemlistReport(output,campaigns);
-  }).catch(function(err){
-    status.textContent="Error: "+(err.message||err);
-    output.innerHTML="";
-  });
-}
-function fetchLemlistCampaigns(key){
-  var baseUrl="/api/lemlist?path="+encodeURIComponent("/api/campaigns");
-  return tryLemlistFetch(baseUrl,key).then(function(data){
-    if(Array.isArray(data)) return data;
-    if(data && Array.isArray(data.campaigns)) return data.campaigns;
-    if(data && data.items) return data.items;
-    throw new Error("Unexpected campaigns response format.");
-  });
-}
-function fetchLemlistCampaignLeads(key,camp){
-  var campaignId=camp.id||camp._id||camp.campaignId||camp.uuid||camp.name;
-  if(!campaignId){
-    return Promise.resolve({campaign:camp,activity:[]});
-  }
-  var url="/api/lemlist?path="+encodeURIComponent("/api/activities?campaignId="+campaignId+"&limit=200");
-  return tryLemlistFetch(url,key).then(function(data){
-    if(Array.isArray(data)) return {campaign:camp,activity:data};
-    if(data && Array.isArray(data.leadActivities)) return {campaign:camp,activity:data.leadActivities};
-    if(data && Array.isArray(data.activities)) return {campaign:camp,activity:data.activities};
-    if(data && Array.isArray(data.items)) return {campaign:camp,activity:data.items};
-    return {campaign:camp,activity:[]};
-  });
-}
-function renderLemlistReport(container,campaigns){
-  if(!campaigns.length){container.innerHTML="<div style='font-size:12px;color:#888;'>No campaigns or lead activity found.</div>";return;}
-  var html="";
-  campaigns.forEach(function(item){
-    var c=item.campaign||item.camp||item;
-    var act=item.activity||item;
-    var campaignTitle=(c.name||c.title||c.campaignName||c.id||c._id||"Unnamed campaign");
-    html+="<div style='margin-bottom:20px;padding:14px;border:1px solid #e5e5e5;border-radius:10px;background:#fff;'>";
-    html+="<div style='font-size:13px;font-weight:600;margin-bottom:8px;color:#1a1a1a;'>"+esc(campaignTitle)+"</div>";
-    html+="<div style='font-size:11px;color:#555;margin-bottom:8px;'>ID: "+esc(c.id||c._id||c.campaignId||"")+"</div>";
-    if(Array.isArray(act)){
-      var stageOrder=["linkedinVisitDone","linkedinSent","linkedinInviteAccepted","linkedinOpened","linkedinReplied"];
-      var leadMap={};
-      act.forEach(function(event){
-        var key=event.leadEmail||event.email||event.leadId||event.id||event.name||event.subject||JSON.stringify(event).slice(0,100);
-        if(!key) key=JSON.stringify(event);
-        if(!leadMap[key]) leadMap[key]={};
-        if(event.type) leadMap[key][event.type]=true;
-      });
-      var totalLeads=Object.keys(leadMap).length;
-      var stageCounts={};
-      stageOrder.forEach(function(stage){
-        stageCounts[stage]=Object.keys(leadMap).filter(function(leadKey){return leadMap[leadKey][stage];}).length;
-      });
-      html+="<div style='display:grid;grid-template-columns:minmax(120px,1fr) minmax(120px,1fr) minmax(120px,1fr);gap:8px;margin-bottom:14px;'>";
-      act.forEach(function(event){
-        html+="<div style='padding:8px;border:1px solid #f0f0f0;border-radius:8px;background:#fafafa;'>";
-        html+="<div style='font-size:12px;font-weight:600;color:#333;'>"+esc(event.type||event.status||event.stage||"Activity")+"</div>";
-        html+="<div style='font-size:11px;color:#555;margin-top:4px;'>"+esc(event.leadEmail||event.email||event.name||event.subject||event.detail||JSON.stringify(event).slice(0,120))+"</div>";
-        html+="</div>";
-      });
-      html+="</div>";
-      html+="<div style='margin-top:14px;padding:12px;border:1px solid #e5e5e5;border-radius:10px;background:#fbfbff;'>";
-      html+="<div style='font-size:12px;font-weight:700;color:#1a1a1a;margin-bottom:10px;'>Funnel summary</div>";
-      html+="<div style='display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:10px;font-size:12px;color:#333;'>";
-      html+="<div style='font-weight:600;'>Stage</div><div style='font-weight:600;'>Count</div><div style='font-weight:600;'>% of total</div>";
-      html+="<div style='grid-column:1/span3;padding:4px 0;color:#555;'>Total leads: "+totalLeads+"</div>";
-      stageOrder.forEach(function(stage){
-        var count=stageCounts[stage]||0;
-        var pct=totalLeads?Math.round(count/totalLeads*100):0;
-        html+="<div style='padding:4px 0;'>"+esc(stage)+"</div>";
-        html+="<div style='padding:4px 0;color:#1a1a1a;">"+count+"</div>";
-        html+="<div style='padding:4px 0;color:#555;'>"+pct+"%</div>";
-      });
-      html+="</div>";
-      html+="</div>";
-    } else if(act && typeof act==='object'){
-      html+="<pre style='font-size:11px;color:#444;white-space:pre-wrap;'>"+esc(JSON.stringify(act,null,2))+"</pre>";
-    } else {
-      html+="<div style='font-size:12px;color:#888;'>No lead activity available.</div>";
-    }
-    html+="</div>";
-  });
-  container.innerHTML=html;
-}
-function clearLemlistReport(){
-  document.getElementById("report-status").textContent="Paste your Lemlist API key and click Load report.";
-  document.getElementById("report-results").innerHTML="";
+function startRenameWs(){
+  var d=document.getElementById("ws-name-disp"),i=document.getElementById("ws-name-inp");
+  i.value=d.textContent;d.style.display="none";i.style.display="inline-block";i.focus();i.select();
 }
 function finishRenameWs(){
   var d=document.getElementById("ws-name-disp"),i=document.getElementById("ws-name-inp");
@@ -673,7 +569,7 @@ function finishRenameWs(){
 function startRenameTab(n){
   var el=document.getElementById("tab"+n+"-name");el.contentEditable=true;el.focus();
   var r=document.createRange();r.selectNodeContents(el);window.getSelection().removeAllRanges();window.getSelection().addRange(r);
-  el.onblur=function(){el.contentEditable=false;var ws=getCurrentWs();if(ws){if(!ws.tabNames)ws.tabNames=DEFAULT_TAB_NAMES.slice();ws.tabNames[n-1]=el.textContent.trim()||ws.tabNames[n-1];if(n===1)document.getElementById("t1-title").textContent=ws.tabNames[0];if(n===2)document.getElementById("t2-title").textContent=ws.tabNames[1];if(n===4)document.getElementById("report-title").textContent=ws.tabNames[3];saveHome();}};
+  el.onblur=function(){el.contentEditable=false;var ws=getCurrentWs();if(ws){if(!ws.tabNames)ws.tabNames=DEFAULT_TAB_NAMES.slice();ws.tabNames[n-1]=el.textContent.trim()||ws.tabNames[n-1];if(n===1)document.getElementById("t1-title").textContent=ws.tabNames[0];if(n===2)document.getElementById("t2-title").textContent=ws.tabNames[1];saveHome();}};
   el.onkeydown=function(e){if(e.key==="Enter"){e.preventDefault();el.blur();}};
 }
 
@@ -703,6 +599,7 @@ function renderTable(t){
   var tb=document.getElementById(bid);tb.innerHTML="";
   data.rows.forEach(function(row,ri){
     var tr=document.createElement("tr");
+    if(t===2){tr.style.cursor="pointer";(function(rid){tr.onclick=function(e){if(e.target.classList.contains("del-row")||e.target.classList.contains("rp")||e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;openCampDetail(rid);};})(row.id);}
     var nd=document.createElement("td");nd.className="row-num";nd.innerHTML="<span class='del-row' title='Duplicate' onclick='duplicateRow("+t+",\""+row.id+"\")''>>&#8645;</span><span class='del-row' title='Delete' onclick='deleteRow("+t+",\""+row.id+"\")''>>&#215;</span>";tr.appendChild(nd);
     data.cols.forEach(function(col){
       var td=document.createElement("td");var vals=row.cells[col.id]||[];
@@ -794,7 +691,6 @@ function openColMenu(e,t,colId){
     {label:"Rename",fn:function(){openColModal("rename",t,colId);}},
     {label:"Change type / options",fn:function(){openColModal("type",t,colId);}},
     {label:"Change colour",fn:function(){openColModal("colour",t,colId);}},
-    {label:"Strategy map role",fn:function(){openColModal("t3role",t,colId);}},
     {sep:true},
     {label:"Delete column",fn:function(){removeCol(t,colId);},danger:true}
   ];
@@ -1126,12 +1022,11 @@ function initT3Canvas(){
 }
 
 function showTab(n){
-  [1,2,3,4].forEach(function(i){
+  [1,2,3].forEach(function(i){
     var v=document.getElementById("view"+i);if(v)v.style.display="none";
-    var tb=document.getElementById(i===1?"tab1":i===2?"tab2":i===3?"tab05":"tab4");if(tb)tb.classList.toggle("active",i===n);
+    var tb=document.getElementById(i===1?"tab1":i===2?"tab2":"tab05");if(tb)tb.classList.toggle("active",i===n);
   });
   if(n===3){var v3=document.getElementById("view3");v3.style.display="flex";v3.style.flexDirection="column";renderT3();}
-  else if(n===4){document.getElementById("view4").style.display="block";}
   else{document.getElementById("view"+n).style.display="block";}
 }
 function openModal(id){document.getElementById(id).classList.add("open");}
@@ -1174,7 +1069,139 @@ function duplicateFlow(flowId){
   var copy=JSON.parse(JSON.stringify(flow));copy.id=uid();copy.name=flow.name+" (copy)";copy.nodePositions={};
   ws.flows.push(copy);saveHome();renderT3();
 }
+
+var cdpRowId = null;
+
+function openCampDetail(rid){
+  var ws=getCurrentWs();if(!ws)return;
+  var row=ws.t2.rows.find(function(r){return r.id===rid;});if(!row)return;
+  cdpRowId=rid;
+
+  // Set title from campaign name col
+  var nameCol=ws.t2.cols.find(function(c){return c.name==="Campaign name";});
+  var nameVal=nameCol?(row.cells[nameCol.id]||[])[0]||"":"";
+  document.getElementById("cdp-title").value=nameVal;
+  document.getElementById("cdp-title").onblur=function(){
+    if(!nameCol)return;
+    if(!row.cells[nameCol.id])row.cells[nameCol.id]=[];
+    row.cells[nameCol.id]=[this.value];saveHome();renderTable(2);
+  };
+
+  var body=document.getElementById("cdp-body");body.innerHTML="";
+
+  ws.t2.cols.forEach(function(col){
+    if(col.name==="Campaign name")return; // shown in header
+    var vals=row.cells[col.id]||[];
+    var field=document.createElement("div");field.className="cdp-field";
+    var lbl=document.createElement("div");lbl.className="cdp-field-label";lbl.textContent=col.name;field.appendChild(lbl);
+
+    if(col.type==="dropdown"){
+      var sel=document.createElement("select");sel.className="cdp-select";
+      sel.innerHTML="<option value=\'\'>--</option>";
+      (col.opts||[]).forEach(function(o){
+        sel.innerHTML+="<option value=\'"+o+"\'"+(vals[0]===o?" selected":"")+">"+o+"</option>";
+      });
+      sel.onchange=function(){row.cells[col.id]=[sel.value];saveHome();renderTable(2);};
+      field.appendChild(sel);
+    } else {
+      var valWrap=document.createElement("div");valWrap.className="cdp-field-val";
+
+      function renderPills(){
+        valWrap.innerHTML="";
+        var cv=row.cells[col.id]||[];
+        cv.forEach(function(p,pi){
+          if(!p)return;
+          var pill=document.createElement("span");pill.className="cdp-pill";
+          pill.style.cssText="background:"+cBg(col.colour||9)+";color:"+cTx(col.colour||9)+";border:1px solid "+cBd(col.colour||9)+";";
+          pill.innerHTML=p+"<span class=\'rp\' onclick=\'cdpRemovePill(\""+col.id+"\","+pi+")\'>&#215;</span>";
+          valWrap.appendChild(pill);
+        });
+        var inp=document.createElement("input");inp.className="cdp-inp";
+        inp.placeholder=cv.filter(Boolean).length===0?"Type here...":"";
+        var ac=document.createElement("div");ac.className="cdp-ac";ac.style.display="none";
+        if(col.type==="tag"||!col.type){
+          inp.addEventListener("input",function(){
+            var v=this.value.trim().toLowerCase();if(!v){ac.style.display="none";return;}
+            var tags=getAllTags().filter(function(x){return x.toLowerCase().indexOf(v)>-1;});
+            if(!tags.length){ac.style.display="none";return;}
+            ac.innerHTML="";tags.slice(0,6).forEach(function(tag){
+              var it=document.createElement("div");it.className="cdp-ac-item";it.textContent=tag;
+              it.onmousedown=function(e){e.preventDefault();cdpCommit(col.id,tag,col.type);renderPills();};
+              ac.appendChild(it);
+            });ac.style.display="block";
+          });
+        }
+        inp.addEventListener("keydown",function(e){
+          if(e.key==="Enter"||(e.key===","&&(col.type==="tag"||!col.type))){
+            e.preventDefault();var v=this.value.trim();if(v){
+              if(col.type==="tag"||!col.type){v.split(",").map(function(s){return s.trim();}).filter(Boolean).forEach(function(p){cdpCommit(col.id,p,col.type);});}
+              else{cdpCommit(col.id,v,col.type);}
+              renderPills();ac.style.display="none";this.value="";
+            }
+          }
+          if(e.key==="Escape")ac.style.display="none";
+        });
+        inp.addEventListener("blur",function(){
+          setTimeout(function(){ac.style.display="none";},150);
+          if(inp.value.trim()){
+            cdpCommit(col.id,inp.value.trim(),col.type);
+            renderPills();inp.value="";
+          }
+        });
+        valWrap.appendChild(inp);
+        valWrap.appendChild(ac);
+      }
+      renderPills();
+      field.appendChild(valWrap);
+    }
+    body.appendChild(field);
+  });
+
+  document.getElementById("camp-detail-panel").classList.add("open");
+}
+
+function cdpCommit(colId,val,type){
+  var ws=getCurrentWs();if(!ws)return;
+  var row=ws.t2.rows.find(function(r){return r.id===cdpRowId;});if(!row)return;
+  if(!row.cells[colId])row.cells[colId]=[];
+  if(type==="tag"||!type){row.cells[colId].push(val);}
+  else{row.cells[colId]=[val];}
+  saveHome();renderTable(2);
+}
+
+function cdpRemovePill(colId,pi){
+  var ws=getCurrentWs();if(!ws)return;
+  var row=ws.t2.rows.find(function(r){return r.id===cdpRowId;});if(!row||!row.cells[colId])return;
+  row.cells[colId].splice(pi,1);saveHome();renderTable(2);
+  openCampDetail(cdpRowId);
+}
+
+function closeCampDetail(){
+  document.getElementById("camp-detail-panel").classList.remove("open");cdpRowId=null;
+}
+
+
+function syncT1ColsToT2(){
+  var ws=getCurrentWs();if(!ws)return;
+  ws.t1.cols.forEach(function(col){
+    var exists=ws.t2.cols.find(function(c){return c.id===col.id;});
+    if(!exists){
+      var copy=JSON.parse(JSON.stringify(col));
+      ws.t2.cols.push(copy);
+      ws.t2.rows.forEach(function(r){if(!r.cells[col.id])r.cells[col.id]=[];});
+    }
+  });
+}
+
 loadHome();renderHome();initT3Canvas();
 </script>
+
+<div class="camp-detail-panel" id="camp-detail-panel">
+  <div class="cdp-header">
+    <input class="cdp-title" id="cdp-title" placeholder="Campaign name..."/>
+    <span class="cdp-close" onclick="closeCampDetail()">&#215;</span>
+  </div>
+  <div class="cdp-body" id="cdp-body"></div>
+</div>
 </body>
 </html>
