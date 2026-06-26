@@ -584,11 +584,12 @@ function loadLemlistReport(){
   });
 }
 function fetchLemlistCampaigns(key){
-  var baseUrl="/api/lemlist?path="+encodeURIComponent("/api/team");
+  var baseUrl="/api/lemlist?path="+encodeURIComponent("/api/campaigns");
   return tryLemlistFetch(baseUrl,key).then(function(data){
-    console.log("Team endpoint response", data);
-    if(data && typeof data === "object") return data;
-    throw new Error("Unexpected team response format.");
+    if(Array.isArray(data)) return data;
+    if(data && Array.isArray(data.campaigns)) return data.campaigns;
+    if(data && data.items) return data.items;
+    throw new Error("Unexpected campaigns response format.");
   });
 }
 function fetchLemlistCampaignLeads(key,camp){
