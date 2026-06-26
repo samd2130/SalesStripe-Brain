@@ -15,7 +15,8 @@ export default async function handler(req, res) {
   try {
     const apiRes = await fetch(targetUrl, {
       headers: {
-        Authorization: "Basic " + Buffer.from("7ad12194c38272458939786e0ff4f4a:").toString("base64"),
+        Authorization: "Bearer 7ad12194c38272458939786e0ff4f4a",
+        "X-Api-Key": "7ad12194c38272458939786e0ff4f4a",
         Accept: "application/json"
       }
     });
