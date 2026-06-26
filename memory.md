@@ -66,4 +66,18 @@
 
 ---
 
+### [2026-06-26] One stray quote in a JS string blanked the entire app
+- **Symptom:** once deploys finally worked, the live site loaded **blank with dead buttons**.
+- **Cause:** a stray double-quote in `renderLemlistReport`'s funnel code:
+  `html+="<div style='padding:4px 0;color:#1a1a1a;">"+count+...` — the `;">` closed the JS string
+  early, so the whole single inline `<script>` failed to parse and **nothing** ran. Pre-existing bug; it
+  only reached production once the vercel.json fix let the committed index.html actually deploy.
+- **Fix:** [2026-06-26] Changed `;">` to `;'>` in that line, confirmed with
+  `node --check` on the extracted script, redeployed, and verified the live JS parses clean.
+- **Prevention:** a syntax error ANYWHERE in the one inline script kills the WHOLE app — confirming a
+  function "exists" via grep proves nothing. Always extract the `<script>` and run `node --check` before
+  deploying (now a step in `deploy-check`). When building HTML inside double-quoted JS strings, keep CSS
+  attributes single-quoted and never let an unescaped `"` appear inside. Related: [[the onclick
+  quote-doubling entry above]].
+
 <!-- Add new entries above this line, newest first, using the format at the top. -->

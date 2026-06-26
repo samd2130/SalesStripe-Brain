@@ -646,7 +646,7 @@ function renderLemlistReport(container,campaigns){
         var count=stageCounts[stage]||0;
         var pct=totalLeads?Math.round(count/totalLeads*100):0;
         html+="<div style='padding:4px 0;'>"+esc(stage)+"</div>";
-        html+="<div style='padding:4px 0;color:#1a1a1a;">"+count+"</div>";
+        html+="<div style='padding:4px 0;color:#1a1a1a;'>"+count+"</div>";
         html+="<div style='padding:4px 0;color:#555;'>"+pct+"%</div>";
       });
       html+="</div>";
